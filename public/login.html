@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ProdOracle</title>
+    <!-- Ícones e Fonte -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CSS Exclusivo do Login -->
+    <link rel="stylesheet" href="login.css">
+</head>
+<body>
+
+    <div class="container" id="container">
+        
+        <!-- FORMULÁRIO DE CADASTRO -->
+        <div class="form-container sign-up-container">
+            <form id="form-register">
+                <h1>Criar Conta</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+                    <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <span>ou use seu email para registro</span>
+                <input type="text" id="reg-name" placeholder="Nome" />
+                <input type="email" id="reg-email" placeholder="Email" />
+                <input type="password" id="reg-pass" placeholder="Senha" />
+                <button type="submit">Cadastrar</button>
+            </form>
+        </div>
+
+        <!-- FORMULÁRIO DE LOGIN -->
+        <div class="form-container sign-in-container">
+            <form id="form-login">
+                <h1>Entrar</h1>
+                <div class="social-container">
+                    <a href="#" class="social"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social"><i class="fab fa-google-plus-g"></i></a>
+                    <a href="#" class="social"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+                <span>ou use sua conta existente</span>
+                <input type="email" id="login-email" placeholder="Email" />
+                <input type="password" id="login-pass" placeholder="Senha" />
+                <a href="#">Esqueceu a senha?</a>
+                <button type="submit">Entrar</button>
+            </form>
+        </div>
+
+        <!-- PAINEL DESLIZANTE (OVERLAY) -->
+        <div class="overlay-container">
+            <div class="overlay">
+                <div class="overlay-panel overlay-left">
+                    <h1>Bem-vindo de volta!</h1>
+                    <p>Para se manter conectado com a gente, faça login com suas informações pessoais</p>
+                    <button class="ghost" id="signIn">Entrar</button>
+                </div>
+                <div class="overlay-panel overlay-right">
+                    <h1>Olá, Visitante!</h1>
+                    <p>Insira seus dados pessoais e comece sua jornada de gestão inteligente</p>
+                    <button class="ghost" id="signUp">Cadastrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SweetAlert2 (Para alertas bonitos) -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="login.js"></script>
+</body>
+</html>

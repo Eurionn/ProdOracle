@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProdOracle | Enterprise</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="modal-overlay" id="genericModal">
+        <div class="custom-modal">
+            <h3 class="modal-title" id="modalTitle">Título</h3>
+            <div id="modalBody">
+                </div>
+            <div class="mt-4 d-flex gap-2 justify-content-center">
+                <button class="btn btn-outline-light" onclick="closeModal()">Cancelar</button>
+                <button class="btn btn-primary" id="modalConfirmBtn">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
+    <header class="mb-5">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="fs-1">🔮</div>
+                <div>
+                    <h2 class="m-0 brand-gradient">ProdOracle</h2>
+                    <small class="text-muted" style="letter-spacing: 2px;">INTELLIGENCE SYSTEM</small>
+                </div>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4">
+                <ul class="nav nav-pills" id="pills-tab" role="tablist">
+                    <li class="nav-item">
+                        <button class="nav-link active" id="tab-estoque-btn" data-bs-toggle="pill" data-bs-target="#aba-estoque" type="button">
+                            <i class="fas fa-boxes me-2"></i> Estoque
+                        </button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link" id="tab-vendas-btn" data-bs-toggle="pill" data-bs-target="#aba-vendas" type="button" onclick="carregarDashboardVendas()">
+                            <i class="fas fa-chart-line me-2"></i> Vendas
+                        </button>
+                    </li>
+                </ul>
+                <div class="border-start border-secondary ps-4 d-flex align-items-center gap-3">
+                    <div class="text-end d-none d-md-block">
+                        <div class="fw-bold text-white" id="user-display">Admin</div>
+                        <small class="text-muted" style="font-size: 0.7rem;">ONLINE</small>
+                    </div>
+                    <button onclick="logout()" class="btn btn-outline-danger btn-sm rounded-circle" style="width: 40px; height: 40px;"><i class="fas fa-power-off"></i></button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container pb-5">
+        <div class="tab-content" id="pills-tabContent">
+            
+            <div class="tab-pane fade show active" id="aba-estoque" role="tabpanel">
+                <div class="row mb-5 g-4">
+                    <div class="col-md-4">
+                        <div class="card h-100 p-3">
+                            <div><div class="kpi-label">SKUs Cadastrados</div><div class="kpi-value kpi-teal" id="kpi-total-itens">0</div></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 p-3">
+                            <div><div class="kpi-label">Volume Total</div><div class="kpi-value" id="kpi-estoque-total">0</div></div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card h-100 p-3">
+                            <div><div class="kpi-label text-warning">Capital Imobilizado</div><div class="kpi-value kpi-orange" id="kpi-valor-total">R$ 0,00</div></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-lg-5">
+                        <div class="card h-100 border-0">
+                            <div class="card-header"><span><i class="fas fa-plus-circle me-2"></i> Gestão</span></div>
+                            <div class="card-body">
+                                <div class="p-3 mb-4 rounded-4" style="background: rgba(0,0,0,0.2); border: 1px solid var(--glass-border);">
+                                    <input type="text" id="novo-prod-nome" class="form-control mb-3" placeholder="Nome">
+                                    <div class="row g-2 mb-3">
+                                        <div class="col"><input type="number" id="novo-prod-estoque" class="form-control" placeholder="Qtd"></div>
+                                        <div class="col"><input type="number" id="novo-prod-preco" class="form-control" placeholder="Preço (R$)"></div>
+                                    </div>
+                                    <button onclick="adicionarProduto()" class="btn btn-primary w-100"><i class="fas fa-save me-2"></i> Adicionar</button>
+                                </div>
+                                <div class="input-group mb-3">
+                                    <span class="input-group-text bg-transparent border-end-0 text-muted" style="border-color: var(--glass-border);"><i class="fas fa-search"></i></span>
+                                    <input type="text" id="search-input" class="form-control border-start-0 ps-0" placeholder="Buscar..." style="margin: 0;">
+                                </div>
+                                <ul id="lista-produtos" class="list-group list-group-flush" style="max-height: 500px; overflow-y: auto; padding-right: 5px;"></ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-7">
+                        <div class="card h-100 border-0">
+                            <div class="card-header"><i class="fas fa-brain me-2"></i> Oracle AI Analysis</div>
+                            <div class="card-body d-flex flex-column justify-content-center text-center">
+                                <div id="msg-inicial" class="py-5 text-muted opacity-50">
+                                    <i class="fas fa-chart-area fs-1 mb-3"></i>
+                                    <h3>Selecione um produto</h3>
+                                </div>
+                                <div id="conteudo-analise" style="display:none;" class="text-start h-100">
+                                    <div class="d-flex justify-content-between align-items-center mb-4">
+                                        <h3 id="titulo-produto" class="m-0 text-white fw-bold"></h3>
+                                        <div class="badge bg-light text-dark fs-6 px-3 py-2">Prev: <span id="valor-previsao" class="fw-bold text-primary"></span> un.</div>
+                                    </div>
+                                    <div class="flex-grow-1" style="min-height: 350px;"><canvas id="graficoPrevisao"></canvas></div>
+                                    <div id="insight-box" class="alert mt-4 fw-bold border-0 shadow-sm" style="background: rgba(255,255,255,0.1); color: white;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-pane fade" id="aba-vendas" role="tabpanel">
+                <div class="row mb-5 g-4">
+                    <div class="col-md-4"><div class="card h-100 p-4"><div class="kpi-label text-white opacity-75">Faturamento</div><h2 class="mb-0 fw-bold text-white mt-2" id="dash-faturamento">R$ 0,00</h2></div></div>
+                    <div class="col-md-4"><div class="card h-100 p-4"><div class="kpi-label">Vendas Realizadas</div><h2 class="mb-0 fw-bold mt-2 kpi-value" id="dash-qtd">0</h2></div></div>
+                    <div class="col-md-4"><div class="card h-100 p-4"><div class="kpi-label text-warning">Ticket Médio</div><h2 class="mb-0 fw-bold mt-2 text-warning" id="dash-ticket">R$ 0,00</h2></div></div>
+                </div>
+
+                <div class="row g-4 mb-4">
+                    <div class="col-lg-8"><div class="card h-100"><div class="card-header"><i class="fas fa-calendar-alt me-2"></i> Evolução Diária</div><div class="card-body"><div style="height: 350px;"><canvas id="graficoDiario"></canvas></div></div></div></div>
+                    <div class="col-lg-4"><div class="card h-100"><div class="card-header"><i class="fas fa-trophy me-2"></i> Top Produtos</div><div class="card-body"><div style="height: 350px;"><canvas id="graficoRanking"></canvas></div></div></div></div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <span><i class="fas fa-stream me-2"></i> Transações</span>
+                        <button onclick="exportarRelatorio()" class="btn btn-outline-success btn-sm"><i class="fas fa-file-excel me-2"></i> Exportar CSV</button>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0 align-middle">
+                                <thead><tr><th class="ps-4">Horário</th><th>Produto</th><th class="text-center">Qtd</th><th class="text-end pe-4">Total</th></tr></thead>
+                                <tbody id="tabela-transacoes"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
