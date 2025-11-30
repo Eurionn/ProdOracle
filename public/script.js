@@ -170,12 +170,35 @@ async function carregarEstoque(filterText = '') {
                         <i class="fas fa-box me-1"></i> ${p.estoque} un. | <span class="text-white opacity-50">${p.preco.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</span>
                     </div>
                 </div>
-                <div>
-                    <button class="btn btn-vender-glow btn-sm me-1 rounded-circle" style="width: 32px; height: 32px;" onclick="openVendaModal(${p.id}, '${p.nome}', ${p.preco})"><i class="fas fa-dollar-sign"></i></button>
-                    <button class="btn btn-outline-success btn-sm me-1 rounded-circle" style="width: 32px; height: 32px;" onclick="openReporModal(${p.id}, '${p.nome}')"><i class="fas fa-plus"></i></button>
-                    <button class="btn btn-outline-light btn-sm me-1 rounded-circle" style="width: 32px; height: 32px;" onclick="prever(${p.id})"><i class="fas fa-chart-line"></i></button>
-                    <button class="btn btn-outline-danger btn-sm rounded-circle" style="width: 32px; height: 32px;" onclick="deletar(${p.id})"><i class="fas fa-trash"></i></button>
-                </div>
+<div class="d-flex justify-content-end">
+    <button class="btn btn-vender-glow btn-sm me-1 rounded-circle d-flex align-items-center justify-content-center p-0" 
+            style="width: 32px; height: 32px;" 
+            onclick="openVendaModal(${p.id}, '${p.nome}', ${p.preco})" 
+            title="Realizar Venda">
+        <i class="fas fa-dollar-sign"></i>
+    </button>
+
+    <button class="btn btn-outline-success btn-sm me-1 rounded-circle d-flex align-items-center justify-content-center p-0" 
+            style="width: 32px; height: 32px;" 
+            onclick="openReporModal(${p.id}, '${p.nome}')" 
+            title="Repor Estoque">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <button class="btn btn-outline-light btn-sm me-1 rounded-circle d-flex align-items-center justify-content-center p-0" 
+            style="width: 32px; height: 32px;" 
+            onclick="prever(${p.id})" 
+            title="Análise de IA">
+        <i class="fas fa-chart-line"></i>
+    </button>
+
+    <button class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center p-0" 
+            style="width: 32px; height: 32px;" 
+            onclick="deletar(${p.id})" 
+            title="Excluir Produto">
+        <i class="fas fa-trash"></i>
+    </button>
+</div>
             </li>
         `;
     });
@@ -257,7 +280,7 @@ async function carregarDashboardVendas() {
     tbody.innerHTML = '';
     dados.ultimasTransacoes.forEach(t => {
         const d = new Date(t.data);
-        tbody.innerHTML += `<tr><td class="ps-4 text-muted small">${d.toLocaleDateString()} ${d.toLocaleTimeString().slice(0,5)}</td><td class="fw-bold text-white">${t.nomeProduto}</td><td class="text-center"><span class="badge bg-secondary">${t.qtd}</span></td><td class="text-end pe-4" style="color: var(--vibrant-teal)">+ ${t.total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td></tr>`;
+        tbody.innerHTML += `<tr><td class="ps-4 text-muted small">${d.toLocaleDateString()} ${d.toLocaleTimeString().slice(0,5)}</td><td class="fw-bold text-dark">${t.nomeProduto}</td><td class="text-center"><span class="badge bg-secondary">${t.qtd}</span></td><td class="text-end pe-4" style="color: var(--vibrant-teal)">+ ${t.total.toLocaleString('pt-BR',{style:'currency',currency:'BRL'})}</td></tr>`;
     });
 
     // Gráficos de Venda (Diário e Ranking) - Código simplificado para brevidade (mantém o mesmo visual)
