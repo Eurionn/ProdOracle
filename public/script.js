@@ -9,9 +9,22 @@ if (!localStorage.getItem('user_token')) window.location.href = 'login.html';
 
 document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('user-display').innerText = localStorage.getItem('user_name') || 'Admin';
+    
+    // Carrega a lista inicial
     carregarEstoque();
-    carregarDashboardVendas();
-    document.getElementById('search-input').addEventListener('input', (e) => carregarEstoque(e.target.value));
+    carregarDashboardVendas(); // Se tiver essa função
+    
+    // --- CORREÇÃO AQUI ---
+    const inputs = ['search-input', 'filter-category', 'filter-status'];
+    
+    inputs.forEach(id => {
+        const elemento = document.getElementById(id);
+        if (elemento) {
+            // Usa 'input' para digitar e 'change' para selecionar opções
+            elemento.addEventListener('input', () => carregarEstoque());
+            elemento.addEventListener('change', () => carregarEstoque());
+        }
+    });
 });
 
 function logout() {
@@ -149,9 +162,23 @@ async function carregarEstoque(filterText = '') {
     document.getElementById('kpi-estoque-total').innerText = produtos.reduce((acc,p)=>acc+p.estoque,0);
     document.getElementById('kpi-valor-total').innerText = produtos.reduce((acc,p)=>acc+(p.estoque*p.preco),0).toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
 
+    // [NOVO] LEITURA DOS FILTROS
+    const termo = document.getElementById('search-input').value.toLowerCase();
+    const categoria = document.getElementById('filter-category').value;
+    const status = document.getElementById('filter-status').value;
+
     const lista = document.getElementById('lista-produtos');
     lista.innerHTML = '';
-    const filtrados = produtos.filter(p => p.nome.toLowerCase().includes(filterText.toLowerCase()));
+
+    // [NOVO] LÓGICA DE FILTRAGEM
+    const filtrados = produtos.filter(p => {
+        const matchNome = p.nome.toLowerCase().includes(termo);
+        const matchCat = categoria === "" || p.categoria === categoria;
+        let matchStatus = true;
+        if (status === 'critical') matchStatus = p.estoque < 10;
+        if (status === 'ok') matchStatus = p.estoque >= 10;
+        return matchNome && matchCat && matchStatus;
+    });
 
     if (filtrados.length === 0) {
         lista.innerHTML = '<li class="list-group-item text-center text-muted">Nenhum produto encontrado.</li>';
@@ -205,18 +232,41 @@ async function carregarEstoque(filterText = '') {
 }
 
 async function adicionarProduto() {
-    const nome = document.getElementById('novo-prod-nome').value;
-    const estoque = Number(document.getElementById('novo-prod-estoque').value);
-    const preco = Number(document.getElementById('novo-prod-preco').value);
+    // Captura os elementos
+    const nomeInput = document.getElementById('novo-prod-nome');
+    const catInput = document.getElementById('novo-prod-categoria'); // Novo
+    const estInput = document.getElementById('novo-prod-estoque');
+    const precInput = document.getElementById('novo-prod-preco');
 
-    if(!nome || !estoque || !preco) return showToast("Preencha todos os campos!", "error");
+    const nome = nomeInput.value;
+    const categoria = catInput.value; // Novo valor
+    const estoque = Number(estInput.value);
+    const preco = Number(precInput.value);
 
-    await fetch('/api/produtos', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({nome, estoque, preco}) });
+    // Validação
+    if(!nome || !categoria || !estoque || !preco) {
+        return showToast("Preencha todos os campos, incluindo a categoria!", "error");
+    }
+
+    // Envia ao Backend
+    await fetch('/api/produtos', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({
+            nome, 
+            categoria, // Envia a categoria selecionada
+            estoque, 
+            preco
+        })
+    });
     
-    document.getElementById('novo-prod-nome').value = '';
-    document.getElementById('novo-prod-estoque').value = '';
-    document.getElementById('novo-prod-preco').value = '';
-    showToast("Produto adicionado!", "success");
+    // Limpa os campos
+    nomeInput.value = '';
+    catInput.value = ''; // Reseta o select
+    estInput.value = '';
+    precInput.value = '';
+    
+    showToast("Produto adicionado com sucesso!", "success");
     carregarEstoque();
 }
 

@@ -10,14 +10,14 @@ app.use(express.static('public'));
 // --- DADOS ---
 let users = [{ name: "Admin", email: "admin@prodoracle.com", password: "123" }];
 let produtos = [
-    { id: 1, nome: "Placa de Vídeo RTX 4060", estoque: 12, preco: 2100 },
-    { id: 2, nome: "Processador Ryzen 7 5700X", estoque: 25, preco: 1300 },
-    { id: 3, nome: "Monitor 144Hz IPS 24'", estoque: 40, preco: 950 },
-    { id: 4, nome: "Cadeira Gamer Ergô", estoque: 8, preco: 1200 },
-    { id: 5, nome: "Teclado Mecânico RGB", estoque: 60, preco: 250 },
-    { id: 6, nome: "Mouse Gamer 12000DPI", estoque: 85, preco: 120 },
-    { id: 7, nome: "Headset 7.1 Surround", estoque: 30, preco: 350 },
-    { id: 8, nome: "SSD NVMe 1TB", estoque: 50, preco: 400 }
+    { id: 1, nome: "Placa de Vídeo RTX 4060", categoria: "Hardware", estoque: 12, preco: 2100 },
+    { id: 2, nome: "Processador Ryzen 7 5700X", categoria: "Hardware", estoque: 25, preco: 1300 },
+    { id: 3, nome: "Monitor 144Hz IPS 24'", categoria: "Monitores", estoque: 40, preco: 950 },
+    { id: 4, nome: "Cadeira Gamer Ergô", categoria: "Cadeiras", estoque: 8, preco: 1200 },
+    { id: 5, nome: "Teclado Mecânico RGB", categoria: "Periféricos", estoque: 60, preco: 250 },
+    { id: 6, nome: "Mouse Gamer 12000DPI", categoria: "Periféricos", estoque: 85, preco: 120 },
+    { id: 7, nome: "Headset 7.1 Surround", categoria: "Periféricos", estoque: 30, preco: 350 },
+    { id: 8, nome: "SSD NVMe 1TB", categoria: "Hardware", estoque: 50, preco: 400 }
 ];
 let vendas = [];
 let transacoes = [];

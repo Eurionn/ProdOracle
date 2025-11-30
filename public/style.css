@@ -143,6 +143,26 @@ header {
     background-clip: text; /* Correção do aviso */
     -webkit-text-fill-color: transparent;
 }
+/* ESTILOS DE FORMULÁRIO (INCLUINDO O NOVO SELECT) */
+.form-control, .form-select {
+    background: rgba(0, 0, 0, 0.3);
+    border: 1px solid var(--glass-border);
+    color: var(--text-white);
+    border-radius: 12px;
+    padding: 12px;
+}
+.form-control:focus, .form-select:focus {
+    background: rgba(0, 0, 0, 0.5);
+    border-color: var(--burnt-orange);
+    color: var(--text-white);
+    box-shadow: 0 0 0 3px rgba(242, 143, 0, 0.2);
+}
+.form-control::placeholder { color: rgba(255,255,255,0.3); }
+/* Para as opções do dropdown ficarem escuras */
+.form-select option {
+    background-color: var(--deep-navy);
+    color: white;
+}
 
 /* --- FORMULÁRIOS E INPUTS --- */
 .form-control {
