@@ -94,33 +94,45 @@ app.delete('/api/produtos/:id', (req, res) => {
     res.json({ msg: "Deletado" });
 });
 
-// ROTA DE VENDA ATUALIZADA (Com Desconto)
+// CORREÇÃO DO CALENDÁRIO (Backend)
 app.post('/api/vendas', (req, res) => {
-    const { produtoId, qtd, descontoPorcento } = req.body; // Recebe desconto
-    const produtoIndex = produtos.findIndex(p => p.id == produtoId);
+    const { produtoId, qtd } = req.body;
+    // Converte para garantir que são números (evita bugs de texto)
+    const pId = parseInt(produtoId); 
+    const pQtd = parseInt(qtd);
+
+    const produtoIndex = produtos.findIndex(p => p.id === pId);
     
     if (produtoIndex > -1) {
-        if (produtos[produtoIndex].estoque < qtd) return res.status(400).json({ error: "Estoque insuficiente!" });
+        if (produtos[produtoIndex].estoque < pQtd) {
+            return res.status(400).json({ error: "Estoque insuficiente!" });
+        }
         
-        const prod = produtos[produtoIndex];
-        prod.estoque -= qtd;
+        // Baixa no estoque
+        produtos[produtoIndex].estoque -= pQtd;
         
-        const valorOriginal = parseInt(qtd) * prod.preco;
-        const valorDesconto = valorOriginal * (descontoPorcento / 100);
-        const valorFinal = valorOriginal - valorDesconto;
-
-        const novaTransacao = {
+        // Registra na tabela visual (Transações)
+        transacoes.unshift({
             id: Date.now(),
-            produtoId: prod.id,
-            nomeProduto: prod.nome,
-            qtd: parseInt(qtd),
-            total: valorFinal, // Salva o valor já com desconto
-            desconto: descontoPorcento,
+            nomeProduto: produtos[produtoIndex].nome,
+            qtd: pQtd,
+            total: pQtd * produtos[produtoIndex].preco,
             data: new Date()
-        };
-        transacoes.unshift(novaTransacao);
-        vendas.push({ produtoId: prod.id, mes: 13, qtd: parseInt(qtd), tipo: 'REAL' });
+        });
         
+        // --- O SEGREDO DO CALENDÁRIO ---
+        // Verifica se JÁ EXISTE uma venda neste mês (Mês 13/Janeiro)
+        const vendaExistente = vendas.find(v => v.produtoId === pId && v.mes === 13);
+        
+        if (vendaExistente) {
+            // Se já existe, SOMA a quantidade na linha existente
+            vendaExistente.qtd += pQtd;
+            vendaExistente.tipo = 'REAL'; 
+        } else {
+            // Se é a primeira vez, cria a linha nova
+            vendas.push({ produtoId: pId, mes: 13, qtd: pQtd, tipo: 'REAL' });
+        }
+
         res.json({ msg: "Venda registrada!" });
     } else {
         res.status(404).json({ error: "Produto não encontrado" });
