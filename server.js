@@ -8,7 +8,7 @@ app.use(express.json());
 app.use(express.static('public'));
 
 // --- DADOS ---
-let users = [{ name: "Admin", email: "admin@prodoracle.com", password: "123" }];
+let users = [{ name: "Zeitgeist", email: "admin@prodoracle.com", password: "123" }];
 let produtos = [
     { id: 1, nome: "Placa de Vídeo RTX 4060", categoria: "Hardware", estoque: 12, preco: 2100 },
     { id: 2, nome: "Processador Ryzen 7 5700X", categoria: "Hardware", estoque: 25, preco: 1300 },
@@ -35,26 +35,48 @@ const gerarHistoricoIA = (prod) => {
     }
 };
 
+// --- CORREÇÃO DE DADOS INICIAIS (SERVER.JS) ---
+
 const gerarTransacoesMesAtual = () => {
     const hoje = new Date();
+    // Simula vendas nos últimos 15 dias
     for (let i = 15; i >= 0; i--) {
         const dataSimulada = new Date();
         dataSimulada.setDate(hoje.getDate() - i);
+        
+        // Gera vendas aleatórias
         const numVendasDia = Math.floor(Math.random() * 5) + 3;
+        
         for (let v = 0; v < numVendasDia; v++) {
             const prod = produtos[Math.floor(Math.random() * produtos.length)];
+            
+            // Se por acaso o produto não existir (segurança), pula
+            if (!prod) continue;
+
             const qtd = Math.floor(Math.random() * 3) + 1;
+            
+            // 1. Registra na tabela visual (Transações individuais)
             transacoes.push({
                 id: Date.now() + Math.random(),
-                produtoId: prod.id,
                 nomeProduto: prod.nome,
                 qtd: qtd,
                 total: qtd * prod.preco,
-                desconto: 0, // Mockado sem desconto
+                desconto: 0,
                 valorFinal: qtd * prod.preco,
                 data: dataSimulada
             });
-            vendas.push({ produtoId: prod.id, mes: 13, qtd: qtd, tipo: 'REAL' });
+
+            // 2. O SEGREDO: Atualiza o histórico da IA SEM DUPLICAR O MÊS
+            // Verifica se já existe venda simulada para o Mês 13 (Jan)
+            const vendaExistente = vendas.find(vx => vx.produtoId === prod.id && vx.mes === 13);
+            
+            if (vendaExistente) {
+                vendaExistente.qtd += qtd; // Apenas SOMA
+                vendaExistente.tipo = 'REAL'; // Garante a cor Laranja
+            } else {
+                // Cria o registro do mês se não existir
+                vendas.push({ produtoId: prod.id, mes: 13, qtd: qtd, tipo: 'REAL' });
+            }
         }
     }
 };
@@ -94,11 +116,9 @@ app.delete('/api/produtos/:id', (req, res) => {
     res.json({ msg: "Deletado" });
 });
 
-// CORREÇÃO DO CALENDÁRIO (Backend)
 app.post('/api/vendas', (req, res) => {
     const { produtoId, qtd } = req.body;
-    // Converte para garantir que são números (evita bugs de texto)
-    const pId = parseInt(produtoId); 
+    const pId = parseInt(produtoId);
     const pQtd = parseInt(qtd);
 
     const produtoIndex = produtos.findIndex(p => p.id === pId);
@@ -108,10 +128,10 @@ app.post('/api/vendas', (req, res) => {
             return res.status(400).json({ error: "Estoque insuficiente!" });
         }
         
-        // Baixa no estoque
+        // 1. Baixa no Estoque
         produtos[produtoIndex].estoque -= pQtd;
         
-        // Registra na tabela visual (Transações)
+        // 2. Registra na Tabela Visual (Transações)
         transacoes.unshift({
             id: Date.now(),
             nomeProduto: produtos[produtoIndex].nome,
@@ -120,16 +140,16 @@ app.post('/api/vendas', (req, res) => {
             data: new Date()
         });
         
-        // --- O SEGREDO DO CALENDÁRIO ---
-        // Verifica se JÁ EXISTE uma venda neste mês (Mês 13/Janeiro)
+        // 3. CORREÇÃO DO CALENDÁRIO:
+        // Verifica se já existe um registro para este produto no Mês 13 (Jan)
         const vendaExistente = vendas.find(v => v.produtoId === pId && v.mes === 13);
         
         if (vendaExistente) {
-            // Se já existe, SOMA a quantidade na linha existente
+            // Se já existe, apenas SOMA a quantidade (não cria novo ponto)
             vendaExistente.qtd += pQtd;
             vendaExistente.tipo = 'REAL'; 
         } else {
-            // Se é a primeira vez, cria a linha nova
+            // Se é a primeira venda do mês, cria o registro
             vendas.push({ produtoId: pId, mes: 13, qtd: pQtd, tipo: 'REAL' });
         }
 

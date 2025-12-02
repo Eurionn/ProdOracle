@@ -279,81 +279,75 @@ async function deletar(id) {
     }
 }
 
-// CORREÇÃO DA COR ROXA E NOME DO MÊS (Frontend)
 async function prever(id) {
-    const res = await fetch(`/api/previsao/${id}`);
-    const data = await res.json();
+    try {
+        const res = await fetch(`/api/previsao/${id}`);
+        const data = await res.json();
 
-    if(!res.ok) return showToast("Dados insuficientes para IA", "error");
+        if(!res.ok) return showToast("Dados insuficientes para IA", "error");
 
-    // Exibe o painel
-    document.getElementById('msg-inicial').style.display = 'none';
-    document.getElementById('conteudo-analise').style.display = 'block';
-    document.getElementById('titulo-produto').innerText = data.nome;
-    document.getElementById('valor-previsao').innerText = data.previsaoProximoMes;
-    
-    const insightBox = document.getElementById('insight-box');
-    const isGrowth = data.insight.includes("CRESCIMENTO");
-    insightBox.innerHTML = isGrowth 
-        ? `<i class="fas fa-arrow-trend-up me-2"></i> ${data.insight}` 
-        : `<i class="fas fa-arrow-trend-down me-2"></i> ${data.insight}`;
-    insightBox.style.background = isGrowth ? 'rgba(25, 135, 84, 0.2)' : 'rgba(255, 193, 7, 0.1)';
-    insightBox.style.color = isGrowth ? '#2ecc71' : PALETTE.yellow;
+        document.getElementById('msg-inicial').style.display = 'none';
+        document.getElementById('conteudo-analise').style.display = 'block';
+        document.getElementById('titulo-produto').innerText = data.nome;
+        document.getElementById('valor-previsao').innerText = data.previsaoProximoMes;
+        
+        const insightBox = document.getElementById('insight-box');
+        const isGrowth = data.insight.includes("CRESCIMENTO");
+        insightBox.innerHTML = isGrowth 
+            ? `<i class="fas fa-arrow-trend-up me-2"></i> ${data.insight}` 
+            : `<i class="fas fa-arrow-trend-down me-2"></i> ${data.insight}`;
+        insightBox.style.background = isGrowth ? 'rgba(25, 135, 84, 0.2)' : 'rgba(255, 193, 7, 0.1)';
+        insightBox.style.color = isGrowth ? '#2ecc71' : PALETTE.yellow;
 
-    const ctx = document.getElementById('graficoPrevisao').getContext('2d');
-    const labels = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
-    
-    // 1. CALENDÁRIO: Gera os nomes dos meses do histórico
-    const grafLabels = data.historico.map(h => labels[(h.mes - 1) % 12]);
-    
-    // 2. PREVISÃO DINÂMICA: Calcula qual é o próximo mês (ex: Se último é Jan, próximo é Fev)
-    const ultimoMesNumero = data.historico.length > 0 ? data.historico[data.historico.length-1].mes : 12;
-    const nomeProximoMes = labels[(ultimoMesNumero) % 12]; 
-    grafLabels.push(`${nomeProximoMes} (Prev)`);
+        const ctx = document.getElementById('graficoPrevisao').getContext('2d');
+        const nomesMeses = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
+        
+        // 1. CORREÇÃO DE LABEL: Mapeia os meses do histórico
+        const grafLabels = data.historico.map(h => nomesMeses[(h.mes - 1) % 12]);
+        
+        // 2. PREVISÃO DINÂMICA: Calcula o próximo mês
+        // Se o último foi Jan (13), o próximo é Fev (1)
+        const ultimoMesNumero = data.historico.length > 0 ? data.historico[data.historico.length-1].mes : 12;
+        const nomeProximoMes = nomesMeses[(ultimoMesNumero) % 12];
+        grafLabels.push(`${nomeProximoMes} (Prev)`);
+        
+        const grafData = data.historico.map(h => h.qtd);
+        grafData.push(data.previsaoProximoMes);
 
-    const grafData = data.historico.map(h => h.qtd);
-    grafData.push(data.previsaoProximoMes);
+        // 3. CORREÇÃO DE COR: Roxo para IA, Laranja para Real
+        const pointColors = data.historico.map(h => {
+            return h.tipo === 'ESTIMADO' ? PALETTE.purple : PALETTE.orange;
+        });
+        pointColors.push(PALETTE.yellow); // Futuro
 
-    // 3. COR DA IA: Verifica se o dado é ESTIMADO (Roxo) ou REAL (Laranja)
-    const pointColors = data.historico.map(h => {
-        return h.tipo === 'ESTIMADO' ? PALETTE.purple : PALETTE.orange;
-    });
-    pointColors.push(PALETTE.yellow); // O ponto futuro sempre amarelo
+        if(chartPrevisao) chartPrevisao.destroy();
+        
+        // Gradiente de Fundo
+        let gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, 'rgba(242, 143, 0, 0.5)'); 
+        gradient.addColorStop(1, 'rgba(242, 143, 0, 0.0)'); 
 
-    // Renderiza o gráfico
-    if(chartPrevisao) chartPrevisao.destroy();
-    
-    // Gradiente de fundo bonito
-    let gradient = ctx.createLinearGradient(0, 0, 0, 400);
-    gradient.addColorStop(0, 'rgba(242, 143, 0, 0.5)'); 
-    gradient.addColorStop(1, 'rgba(242, 143, 0, 0.0)'); 
-
-    chartPrevisao = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: grafLabels,
-            datasets: [{
-                label: 'Demanda',
-                data: grafData,
-                borderColor: PALETTE.orange,
-                backgroundColor: gradient,
-                borderWidth: 3,
-                pointBackgroundColor: pointColors, // APLICA AS CORES CORRETAS
-                pointRadius: 5,
-                fill: true,
-                tension: 0.4
-            }]
-        },
-        options: { 
-            responsive: true, 
-            maintainAspectRatio: false, 
-            scales: { 
-                y: { grid: { color: 'rgba(255,255,255,0.05)' } }, 
-                x: { grid: { display: false } } 
-            }, 
-            plugins: { legend: { display: false } } 
-        }
-    });
+        chartPrevisao = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: grafLabels,
+                datasets: [{
+                    label: 'Demanda',
+                    data: grafData,
+                    borderColor: PALETTE.orange,
+                    backgroundColor: gradient,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    pointBackgroundColor: pointColors,
+                    pointRadius: 6
+                }]
+            },
+            options: { responsive: true, maintainAspectRatio: false }
+        });
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao gerar gráfico");
+    }
 }
 
 async function carregarDashboardVendas() {
